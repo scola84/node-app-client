@@ -1,16 +1,19 @@
 import 'dom-shims';
 
+import { EventEmitter } from 'events';
 import { FastClick } from 'fastclick';
 import { request } from 'https';
 
 import {
   HttpConnection,
   WsConnection,
+  load as loadApi
 } from '@scola/api';
 
 import {
   Auth,
-  logIn
+  logIn,
+  load as loadAuth
 } from '@scola/auth-client';
 
 import {
@@ -21,10 +24,13 @@ import {
   model as modelFactory
 } from '@scola/d3';
 
+import { load as loadValidator } from '@scola/validator';
 import { Reconnector } from '@scola/websocket';
 
-export default class Client {
+export default class Client extends EventEmitter {
   constructor() {
+    super();
+
     this._auth = null;
     this._codec = null;
     this._http = null;
@@ -35,11 +41,18 @@ export default class Client {
     this._user = null;
     this._ws = null;
 
+    this._handleError = (e) => this._error(e);
     this._handleOnline = () => this._online();
     this._handleOpen = (e) => this._open(e);
     this._handleSetAuth = (e) => this._setAuth(e);
 
     FastClick.attach(document.body);
+  }
+
+  destroy() {
+    this._unbindAuth();
+    this._unbindRouter();
+    this._unbindWs();
   }
 
   auth(options = null) {
@@ -49,9 +62,9 @@ export default class Client {
 
     const model = modelFactory(options.name)
       .connection(this._ws || this._http);
-      
+
     this._auth = new Auth().model(model);
-    this._bindAuthModel();
+    this._bindAuth();
 
     return this;
   }
@@ -167,6 +180,7 @@ export default class Client {
 
     const model = modelFactory(options.name);
     this._router = routerFactory().model(model);
+    this._bindRouter();
 
     return this;
   }
@@ -208,32 +222,61 @@ export default class Client {
       .codec(this.codec());
 
     this._bindWs();
+    return this;
+  }
+
+  start() {
+    loadApi(this);
+    loadAuth(this);
+    loadValidator(this);
 
     if (window.navigator.onLine === true) {
       this._reconnector.open();
-    } else {
+    } else if (this._auth) {
       logIn(this);
     }
 
     return this;
   }
 
-  _bindAuthModel() {
-    this._auth.model().on('set', this._handleSetAuth);
+  _bindAuth() {
+    if (this._auth) {
+      this._auth.model().on('set', this._handleSetAuth);
+    }
   }
 
-  _unbindAuthModel() {
-    this._auth.model().removeListener('set', this._handleSetAuth);
+  _unbindAuth() {
+    if (this._auth) {
+      this._auth.model().removeListener('set', this._handleSetAuth);
+    }
+  }
+
+  _bindRouter() {
+    if (this._router) {
+      this._router.on('error', this._handleError);
+    }
+  }
+
+  _unbindRouter() {
+    if (this._router) {
+      this._router.removeListener('error', this._handleError);
+    }
   }
 
   _bindWs() {
-    window.addEventListener('online', this._handleOnline);
-    this._reconnector.on('open', this._handleOpen);
+    if (this._reconnector) {
+      window.addEventListener('online', this._handleOnline);
+      this._reconnector.on('open', this._handleOpen);
+      this._reconnector.on('error', this._handleError);
+    }
   }
 
   _unbindWs() {
-    window.removeEventListener('online', this._handleOnline);
-    this._reconnector.removeListener('open', this._handleOpen);
+    if (this._reconnector) {
+      window.removeEventListener('online', this._handleOnline);
+      this._reconnector.removeListener('open', this._handleOpen);
+      this._reconnector.removeListener('error', this._handleError);
+    }
   }
 
   _setAuth(event) {
@@ -260,5 +303,9 @@ export default class Client {
   _open(event) {
     this._ws.open(event);
     logIn(this);
+  }
+
+  _error(error) {
+    this.emit('error', error);
   }
 }
