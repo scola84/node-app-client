@@ -13,6 +13,7 @@ import {
 import {
   Auth,
   logIn,
+  logOut,
   load as loadAuth
 } from '@scola/auth-client';
 
@@ -35,13 +36,15 @@ export default class Client extends EventEmitter {
     this._codec = null;
     this._http = null;
     this._i18n = null;
-    this._main = null;
-    this._menus = new Map();
+    this._mainModifier = null;
+    this._menuModifiers = new Map();
     this._router = null;
     this._user = null;
     this._ws = null;
 
     this._handleError = (e) => this._error(e);
+    this._handleMain = (t) => this._main(t);
+    this._handleMenu = (t) => this._menu(t);
     this._handleOnline = () => this._online();
     this._handleOpen = (e) => this._open(e);
     this._handleSetAuth = (e) => this._setAuth(e);
@@ -109,67 +112,15 @@ export default class Client extends EventEmitter {
     return this;
   }
 
-  main(action = null, media = true) {
-    if (action === null) {
-      return this._main;
-    }
-
-    if (action === false) {
-      this._main.destroy();
-      this._main = null;
-      return this;
-    }
-
-    this._main = mainFactory()
-      .gesture(true);
-
-    if (media === true) {
-      this._main.media();
-    }
-
-    this._router.target('main').render((target) => {
-      target.element(this._main.attach());
-    });
-
+  main(modifier = (e) => e.media()) {
+    this._mainModifier = modifier;
+    this._router.target('main').render(this._handleMain);
     return this;
   }
 
-  menu(name = null, position = null, mode = 'over', media = true) {
-    if (name === null) {
-      return this._menus;
-    }
-
-    let instance = this._menus.get(name);
-
-    if (position === null) {
-      return instance;
-    }
-
-    if (position === false) {
-      this.main().append(instance, false);
-      instance.destroy();
-      this._menus.delete(name);
-      return this;
-    }
-
-    instance = menuFactory()
-      .gesture(true)
-      .position(position)
-      .mode(mode)
-      .border()
-      .reset();
-
-    if (media === true) {
-      instance.media();
-    }
-
-    this._menus.set(name, instance);
-    this.main().append(instance);
-
-    this._router.target(name).render((target) => {
-      target.element(this._menus.get(target.name()));
-    });
-
+  menu(name, modifier = (e) => e.media()) {
+    this._menuModifiers.set(name, modifier);
+    this._router.target(name).render(this._handleMenu);
     return this;
   }
 
@@ -285,15 +236,93 @@ export default class Client extends EventEmitter {
     }
 
     if (event.value === false) {
-      this._menus.forEach((object, name) => {
-        this._router.target(name).destroy('replace');
-      });
-
-      if (this._main) {
+      if (this._mainModifier) {
         this._router.target('main').destroy('replace');
-        this._main.detach();
       }
     }
+  }
+
+  _error(error) {
+    if (error.status === 500) {
+      return;
+    }
+
+    if (error.status === 401 || error.status === 403) {
+      logOut(this);
+      return;
+    }
+
+    this.emit('error', error);
+  }
+
+  _main(target) {
+    let element = mainFactory()
+      .gesture(true);
+
+    element = this._mainModifier(element);
+    const menus = Array.from(this._menuModifiers.keys());
+
+    function handleDestroy() {
+      target.removeListener('destroy', handleDestroy);
+
+      element.hide(() => {
+        element.destroy();
+        target.routes(false);
+
+        menus.forEach((name) => {
+          target.router().target(name).destroy('replace');
+        });
+      });
+    }
+
+    function construct() {
+      menus.forEach((name) => {
+        if (target.router().target(name).element()) {
+          element.append(target.router().target(name).element());
+        }
+      });
+
+      document.body.appendChild(element.root().node());
+      element.show();
+
+      target.on('destroy', handleDestroy);
+      target.element(element);
+    }
+
+    construct();
+  }
+
+  _menu(target) {
+    const modifier = this._menuModifiers.get(target.name());
+
+    let element = menuFactory()
+      .gesture(true)
+      .position('left')
+      .mode('over');
+
+    element = modifier(element);
+
+    element
+      .border()
+      .reset();
+
+    function handleDestroy() {
+      element.destroy();
+      target.routes(false);
+    }
+
+    function construct() {
+      const main = target.router().target('main').element();
+
+      if (main) {
+        main.append(element);
+      }
+
+      target.once('destroy', handleDestroy);
+      target.element(element);
+    }
+
+    construct();
   }
 
   _online() {
@@ -303,9 +332,5 @@ export default class Client extends EventEmitter {
   _open(event) {
     this._ws.open(event);
     logIn(this);
-  }
-
-  _error(error) {
-    this.emit('error', error);
   }
 }
