@@ -178,8 +178,11 @@ export default class Client extends EventEmitter {
 
   start() {
     loadApi(this);
-    loadAuth(this);
     loadValidator(this);
+
+    if (this._auth) {
+      loadAuth(this);
+    }
 
     if (window.navigator.onLine === true) {
       this._reconnector.open();
@@ -331,6 +334,11 @@ export default class Client extends EventEmitter {
 
   _open(event) {
     this._ws.open(event);
-    logIn(this);
+
+    if (this._auth) {
+      logIn(this);
+    } else {
+      this._router.popState();
+    }
   }
 }
