@@ -63,7 +63,7 @@ export default class Client extends EventEmitter {
       return this._auth;
     }
 
-    const model = modelFactory(options.name)
+    const model = modelFactory(options.name, true)
       .connection(this._ws || this._http);
 
     this._auth = new Auth().model(model);
@@ -115,12 +115,14 @@ export default class Client extends EventEmitter {
   main(modifier = (e) => e.media()) {
     this._mainModifier = modifier;
     this._router.target('main').render(this._handleMain);
+
     return this;
   }
 
   menu(name, modifier = (e) => e.media()) {
     this._menuModifiers.set(name, modifier);
     this._router.target(name).render(this._handleMenu);
+
     return this;
   }
 
@@ -129,10 +131,10 @@ export default class Client extends EventEmitter {
       return this._router;
     }
 
-    const model = modelFactory(options.name);
+    const model = modelFactory(options.name, true);
     this._router = routerFactory().model(model);
-    this._bindRouter();
 
+    this._bindRouter();
     return this;
   }
 
@@ -163,8 +165,10 @@ export default class Client extends EventEmitter {
       return this._ws;
     }
 
+    const protocol = options.protocol || 'wss:';
+
     this._reconnector = new Reconnector()
-      .url('wss://' + options.host + ':' + options.port)
+      .url(protocol + '//' + options.host + ':' + options.port)
       .class(WebSocket);
 
     this._ws = new WsConnection()
@@ -265,9 +269,16 @@ export default class Client extends EventEmitter {
     element = this._mainModifier(element);
     const menus = Array.from(this._menuModifiers.keys());
 
-    function handleDestroy() {
-      target.removeListener('destroy', handleDestroy);
+    menus.forEach((name) => {
+      if (target.router().target(name).element()) {
+        element.append(target.router().target(name).element());
+      }
+    });
 
+    document.body.appendChild(element.root().node());
+    element.show();
+
+    target.element(element, () => {
       element.hide(() => {
         element.destroy();
         target.routes(false);
@@ -276,23 +287,7 @@ export default class Client extends EventEmitter {
           target.router().target(name).destroy('replace');
         });
       });
-    }
-
-    function construct() {
-      menus.forEach((name) => {
-        if (target.router().target(name).element()) {
-          element.append(target.router().target(name).element());
-        }
-      });
-
-      document.body.appendChild(element.root().node());
-      element.show();
-
-      target.on('destroy', handleDestroy);
-      target.element(element);
-    }
-
-    construct();
+    });
   }
 
   _menu(target) {
@@ -309,23 +304,16 @@ export default class Client extends EventEmitter {
       .border()
       .reset();
 
-    function handleDestroy() {
+    const main = target.router().target('main').element();
+
+    if (main) {
+      main.append(element);
+    }
+
+    target.element(element, () => {
       element.destroy();
       target.routes(false);
-    }
-
-    function construct() {
-      const main = target.router().target('main').element();
-
-      if (main) {
-        main.append(element);
-      }
-
-      target.once('destroy', handleDestroy);
-      target.element(element);
-    }
-
-    construct();
+    });
   }
 
   _online() {
