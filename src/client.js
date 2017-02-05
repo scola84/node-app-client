@@ -264,7 +264,7 @@ export default class Client extends EventEmitter {
 
   _main(target) {
     let element = mainFactory()
-      .gesture(true);
+      .mode('over');
 
     element = this._mainModifier(element);
     const menus = Array.from(this._menuModifiers.keys());
@@ -294,17 +294,14 @@ export default class Client extends EventEmitter {
     const modifier = this._menuModifiers.get(target.name());
 
     let element = menuFactory()
-      .gesture(true)
-      .position('left')
-      .mode('over');
+      .position('left');
 
     element = modifier(element);
 
-    element
-      .border()
-      .reset();
-
-    const main = target.router().target('main').element();
+    const main = target
+      .router()
+      .target('main')
+      .element();
 
     if (main) {
       main.append(element);
