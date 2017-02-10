@@ -112,14 +112,14 @@ export default class Client extends EventEmitter {
     return this;
   }
 
-  main(modifier = (e) => e.media()) {
+  main(modifier = (e) => e.size()) {
     this._mainModifier = modifier;
     this._router.target('main').render(this._handleMain);
 
     return this;
   }
 
-  menu(name, modifier = (e) => e.media()) {
+  menu(name, modifier = (e) => e.size()) {
     this._menuModifiers.set(name, modifier);
     this._router.target(name).render(this._handleMenu);
 
