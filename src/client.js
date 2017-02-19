@@ -26,7 +26,6 @@ import {
 } from '@scola/d3';
 
 import { load as loadValidator } from '@scola/validator';
-import { Reconnector } from '@scola/websocket';
 
 export default class Client extends EventEmitter {
   constructor() {
@@ -161,20 +160,16 @@ export default class Client extends EventEmitter {
   }
 
   ws(options = null) {
-    if (this._ws) {
+    if (options === null) {
       return this._ws;
     }
 
-    const protocol = options.protocol || 'wss:';
-
-    this._reconnector = new Reconnector()
-      .url(protocol + '//' + options.host + ':' + options.port)
-      .class(WebSocket);
+    options.class = WebSocket;
 
     this._ws = new WsConnection()
-      .auto(false)
       .router(this.router())
-      .codec(this.codec());
+      .codec(this.codec())
+      .reconnector(options);
 
     this._bindWs();
     return this;
@@ -189,7 +184,7 @@ export default class Client extends EventEmitter {
     }
 
     if (window.navigator.onLine === true) {
-      this._reconnector.open();
+      this._ws.open();
     } else if (this._auth) {
       logIn(this);
     }
@@ -222,18 +217,18 @@ export default class Client extends EventEmitter {
   }
 
   _bindWs() {
-    if (this._reconnector) {
+    if (this._ws) {
       window.addEventListener('online', this._handleOnline);
-      this._reconnector.on('open', this._handleOpen);
-      this._reconnector.on('error', this._handleError);
+      this._ws.on('open', this._handleOpen);
+      this._ws.on('error', this._handleError);
     }
   }
 
   _unbindWs() {
-    if (this._reconnector) {
+    if (this._ws) {
       window.removeEventListener('online', this._handleOnline);
-      this._reconnector.removeListener('open', this._handleOpen);
-      this._reconnector.removeListener('error', this._handleError);
+      this._ws.removeListener('open', this._handleOpen);
+      this._ws.removeListener('error', this._handleError);
     }
   }
 
@@ -314,12 +309,10 @@ export default class Client extends EventEmitter {
   }
 
   _online() {
-    this._reconnector.open();
+    this._ws.open();
   }
 
-  _open(event) {
-    this._ws.open(event);
-
+  _open() {
     if (this._auth) {
       logIn(this);
     } else {
