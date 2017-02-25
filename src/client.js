@@ -12,6 +12,7 @@ import {
 
 import {
   Auth,
+  setUser,
   logIn,
   logOut,
   load as loadAuth
@@ -63,7 +64,8 @@ export default class Client extends EventEmitter {
     }
 
     const model = modelFactory(options.name, true)
-      .connection(this._ws || this._http);
+      .connection(this._ws || this._http)
+      .serialize((d, s) => this._serializeAuth(d, s));
 
     this._auth = new Auth().model(model);
     this._bindAuth();
@@ -181,14 +183,14 @@ export default class Client extends EventEmitter {
 
     if (this._auth) {
       loadAuth(this);
+      setUser(this);
     }
 
-    if (window.navigator.onLine === true) {
+    if (window.navigator.onLine === true && this._ws) {
       this._ws.open();
-    } else if (this._auth) {
-      logIn(this);
     }
 
+    this._router.popState();
     return this;
   }
 
@@ -242,6 +244,20 @@ export default class Client extends EventEmitter {
         this._router.target('main').destroy('replace');
       }
     }
+
+    if (this._http) {
+      this._http.auth(event.value);
+    }
+
+    if (this._ws) {
+      this._ws.auth(event.value);
+    }
+  }
+
+  _serializeAuth(data, scope) {
+    return scope === 'parse' ? {
+      token: data.user.token
+    } : data;
   }
 
   _error(error) {
@@ -309,14 +325,14 @@ export default class Client extends EventEmitter {
   }
 
   _online() {
-    this._ws.open();
+    if (this._ws) {
+      this._ws.open();
+    }
   }
 
   _open() {
     if (this._auth) {
       logIn(this);
-    } else {
-      this._router.popState();
     }
   }
 }
