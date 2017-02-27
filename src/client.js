@@ -166,7 +166,9 @@ export default class Client extends EventEmitter {
       return this._ws;
     }
 
-    options.class = WebSocket;
+    options.factory = (u, p) => {
+      return new WebSocket(u, p);
+    };
 
     this._ws = new WsConnection()
       .router(this.router())
