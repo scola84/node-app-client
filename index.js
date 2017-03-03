@@ -1,2 +1,7 @@
-export { jsonCodec } from '@scola/api';
-export { default as Client } from './src/client';
+import { jsonCodec } from '@scola/api';
+import Client from './src/client';
+
+export {
+  Client,
+  jsonCodec
+};
