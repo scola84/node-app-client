@@ -42,17 +42,19 @@ export default class Client extends EventEmitter {
     this._user = null;
     this._ws = null;
 
+    this._fastClick = FastClick.attach(document.body);
+
     this._handleError = (e) => this._error(e);
     this._handleMain = (t) => this._main(t);
     this._handleMenu = (t) => this._menu(t);
     this._handleOnline = () => this._online();
     this._handleOpen = (e) => this._open(e);
     this._handleSetAuth = (e) => this._setAuth(e);
-
-    FastClick.attach(document.body);
   }
 
   destroy() {
+    this._fastClick.destroy();
+
     this._unbindAuth();
     this._unbindRouter();
     this._unbindWs();
