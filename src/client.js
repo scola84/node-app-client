@@ -198,42 +198,6 @@ export default class Client extends EventEmitter {
     return this;
   }
 
-  disable() {
-    if (this._mainModifier) {
-      const main = this._router.target('main').current();
-
-      if (main && main.element()) {
-        main.element().disable();
-      }
-    }
-
-    this._menuModifiers.forEach((modifier, name) => {
-      const menu = this._router.target(name).current();
-
-      if (menu && menu.element()) {
-        menu.element().disable();
-      }
-    });
-  }
-
-  enable() {
-    if (this._mainModifier) {
-      const main = this._router.target('main').current();
-
-      if (main && main.element()) {
-        main.element().enable();
-      }
-    }
-
-    this._menuModifiers.forEach((modifier, name) => {
-      const menu = this._router.target(name).current();
-
-      if (menu && menu.element()) {
-        menu.element().enable();
-      }
-    });
-  }
-
   _bindAuth() {
     if (this._auth) {
       this._auth.model().on('set', this._handleSetAuth);
