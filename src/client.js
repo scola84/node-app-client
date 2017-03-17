@@ -39,6 +39,7 @@ export default class Client extends EventEmitter {
     this._mainModifier = null;
     this._menuModifiers = new Map();
     this._router = null;
+    this._storage = null;
     this._user = null;
     this._ws = null;
 
@@ -139,6 +140,15 @@ export default class Client extends EventEmitter {
     this._router = routerFactory().model(model);
 
     this._bindRouter();
+    return this;
+  }
+
+  storage(value = null) {
+    if (value === null) {
+      return this._storage;
+    }
+
+    this._storage = value;
     return this;
   }
 
