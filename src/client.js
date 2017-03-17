@@ -44,6 +44,7 @@ export default class Client extends EventEmitter {
 
     this._fastClick = FastClick.attach(document.body);
 
+    this._handleClose = () => this._close();
     this._handleError = (e) => this._error(e);
     this._handleMain = (t) => this._main(t);
     this._handleMenu = (t) => this._menu(t);
@@ -190,11 +191,16 @@ export default class Client extends EventEmitter {
       setUser(this);
     }
 
-    if (window.navigator.onLine === true && this._ws) {
-      this._ws.open();
+    this._router.popState();
+
+    if (this._ws) {
+      this._close();
+
+      if (window.navigator.onLine === true) {
+        this._ws.open();
+      }
     }
 
-    this._router.popState();
     return this;
   }
 
@@ -225,16 +231,18 @@ export default class Client extends EventEmitter {
   _bindWs() {
     if (this._ws) {
       window.addEventListener('online', this._handleOnline);
-      this._ws.on('open', this._handleOpen);
+      this._ws.on('close', this._handleClose);
       this._ws.on('error', this._handleError);
+      this._ws.on('open', this._handleOpen);
     }
   }
 
   _unbindWs() {
     if (this._ws) {
       window.removeEventListener('online', this._handleOnline);
-      this._ws.removeListener('open', this._handleOpen);
+      this._ws.removeListener('close', this._handleClose);
       this._ws.removeListener('error', this._handleError);
+      this._ws.removeListener('open', this._handleOpen);
     }
   }
 
@@ -249,13 +257,7 @@ export default class Client extends EventEmitter {
       }
     }
 
-    if (this._http) {
-      this._http.auth(event.value);
-    }
-
-    if (this._ws) {
-      this._ws.auth(event.value);
-    }
+    this.emit('auth', event.value);
   }
 
   _serializeAuth(data, scope) {
@@ -328,6 +330,10 @@ export default class Client extends EventEmitter {
     });
   }
 
+  _close() {
+    this.emit('open', false);
+  }
+
   _online() {
     if (this._ws) {
       this._ws.open();
@@ -338,5 +344,7 @@ export default class Client extends EventEmitter {
     if (this._auth) {
       logIn(this);
     }
+
+    this.emit('open', true);
   }
 }
