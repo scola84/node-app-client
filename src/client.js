@@ -19,6 +19,7 @@ import {
 } from '@scola/auth-client';
 
 import {
+  cache as cacheFactory,
   i18n as i18nFactory,
   router as routerFactory,
   main as mainFactory,
@@ -43,6 +44,11 @@ export default class Client extends EventEmitter {
     this._user = null;
     this._ws = null;
 
+    this._state = {
+      auth: false,
+      open: false
+    };
+
     this._fastClick = FastClick.attach(document.body);
 
     this._handleClose = () => this._close();
@@ -62,6 +68,17 @@ export default class Client extends EventEmitter {
     this._unbindWs();
   }
 
+  is(name, value = null) {
+    if (value === null) {
+      return this._state[name];
+    }
+
+    this._state[name] = value;
+    this.emit(name, value);
+
+    return this;
+  }
+
   auth(options = null) {
     if (options === null) {
       return this._auth;
@@ -69,11 +86,15 @@ export default class Client extends EventEmitter {
 
     const model = modelFactory(options.name, true)
       .connection(this._ws || this._http)
-      .serialize((d, s) => this._serializeAuth(d, s));
+      .serialize((d) => this._serializeAuth(d));
 
-    this._auth = new Auth().model(model);
+    const cache = cacheFactory()
+      .model(model);
+
+    this._auth = new Auth()
+      .cache(cache);
+
     this._bindAuth();
-
     return this;
   }
 
@@ -216,13 +237,15 @@ export default class Client extends EventEmitter {
 
   _bindAuth() {
     if (this._auth) {
-      this._auth.model().on('set', this._handleSetAuth);
+      const model = this._auth.cache().model();
+      model.on('set', this._handleSetAuth);
     }
   }
 
   _unbindAuth() {
     if (this._auth) {
-      this._auth.model().removeListener('set', this._handleSetAuth);
+      const model = this._auth.cache().model();
+      model.removeListener('set', this._handleSetAuth);
     }
   }
 
@@ -267,13 +290,13 @@ export default class Client extends EventEmitter {
       }
     }
 
-    this.emit('auth', event.value);
+    this.is('auth', event.value);
   }
 
-  _serializeAuth(data, scope) {
-    return scope === 'parse' ? {
+  _serializeAuth(data) {
+    return {
       token: data.user.token
-    } : data;
+    };
   }
 
   _error(error) {
@@ -341,7 +364,7 @@ export default class Client extends EventEmitter {
   }
 
   _close() {
-    this.emit('open', false);
+    this.is('open', false);
   }
 
   _online() {
@@ -355,6 +378,6 @@ export default class Client extends EventEmitter {
       logIn(this);
     }
 
-    this.emit('open', true);
+    this.is('open', true);
   }
 }
