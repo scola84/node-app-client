@@ -225,8 +225,6 @@ export default class Client extends EventEmitter {
     this._router.popState();
 
     if (this._ws) {
-      this._close();
-
       if (window.navigator.onLine === true) {
         this._ws.open();
       }
@@ -237,15 +235,13 @@ export default class Client extends EventEmitter {
 
   _bindAuth() {
     if (this._auth) {
-      const model = this._auth.cache().model();
-      model.on('set', this._handleSetAuth);
+      this.on('auth', this._handleSetAuth);
     }
   }
 
   _unbindAuth() {
     if (this._auth) {
-      const model = this._auth.cache().model();
-      model.removeListener('set', this._handleSetAuth);
+      this.removeListener('auth', this._handleSetAuth);
     }
   }
 
@@ -279,18 +275,10 @@ export default class Client extends EventEmitter {
     }
   }
 
-  _setAuth(event) {
-    if (event.name !== 'auth') {
-      return;
+  _setAuth(value) {
+    if (value === false && this._mainModifier) {
+      this._router.target('main').destroy('replace');
     }
-
-    if (event.value === false) {
-      if (this._mainModifier) {
-        this._router.target('main').destroy('replace');
-      }
-    }
-
-    this.is('auth', event.value);
   }
 
   _serializeAuth(data) {
@@ -374,10 +362,10 @@ export default class Client extends EventEmitter {
   }
 
   _open() {
+    this.is('open', true);
+
     if (this._auth) {
       logIn(this);
     }
-
-    this.is('open', true);
   }
 }
