@@ -317,7 +317,7 @@ export default class Client extends EventEmitter {
     element.show();
 
     target.element(element, () => {
-      element.hide(() => {
+      element.hide().on('end', () => {
         element.destroy();
         target.routes(false);
 
