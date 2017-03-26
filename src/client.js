@@ -314,10 +314,10 @@ export default class Client extends EventEmitter {
     });
 
     document.body.appendChild(element.root().node());
-    element.show();
+    element.show(true);
 
     target.element(element, () => {
-      element.hide().on('end', () => {
+      element.show(false).on('end', () => {
         element.destroy();
         target.routes(false);
 
