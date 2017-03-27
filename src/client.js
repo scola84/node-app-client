@@ -70,7 +70,8 @@ export default class Client extends EventEmitter {
 
   is(name, value = null) {
     if (value === null) {
-      return this._state[name];
+      return typeof this._state[name] === 'undefined' ?
+        null : this._state[name];
     }
 
     this._state[name] = value;
@@ -178,7 +179,8 @@ export default class Client extends EventEmitter {
       return this._user;
     }
 
-    this._user = value;
+    this._user = value === false ?
+      null : value;
 
     if (this._ws) {
       this._ws.user(value);
@@ -308,8 +310,13 @@ export default class Client extends EventEmitter {
     const menus = Array.from(this._menuModifiers.keys());
 
     menus.forEach((name) => {
-      if (target.router().target(name).element()) {
-        element.append(target.router().target(name).element());
+      const menu = target
+        .router()
+        .target(name)
+        .element();
+
+      if (menu !== null) {
+        element.append(menu);
       }
     });
 
@@ -322,7 +329,10 @@ export default class Client extends EventEmitter {
         target.routes(false);
 
         menus.forEach((name) => {
-          target.router().target(name).destroy('replace');
+          target
+            .router()
+            .target(name)
+            .destroy('replace');
         });
       });
     });
@@ -341,7 +351,7 @@ export default class Client extends EventEmitter {
       .target('main')
       .element();
 
-    if (main) {
+    if (main !== null) {
       main.append(element);
     }
 
