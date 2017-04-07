@@ -1,4 +1,7 @@
 import 'dom-shims';
+import 'es6-shim';
+import es7 from 'es7-shim';
+import vp from 'viewport-units-buggyfill';
 
 import { EventEmitter } from 'events';
 import { FastClick } from 'fastclick';
@@ -216,6 +219,9 @@ export default class Client extends EventEmitter {
   }
 
   start() {
+    es7.shim();
+    vp.init();
+
     loadApi(this);
     loadValidator(this);
 
