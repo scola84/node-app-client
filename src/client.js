@@ -231,7 +231,10 @@ export default class Client extends EventEmitter {
       setUser(this);
     }
 
-    this._router.popState();
+    const filter = this._user === null ?
+      ['scola.auth'] : null;
+
+    this._router.popState(filter);
 
     if (this._ws) {
       if (window.navigator.onLine === true) {
