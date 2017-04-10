@@ -72,7 +72,7 @@ export default class Client extends EventEmitter {
     this._unbindWs();
   }
 
-  is(name, value = null) {
+  state(name, value = null) {
     if (value === null) {
       return typeof this._state[name] === 'undefined' ?
         null : this._state[name];
@@ -372,7 +372,7 @@ export default class Client extends EventEmitter {
   }
 
   _close() {
-    this.is('open', false);
+    this.state('open', false);
   }
 
   _online() {
@@ -382,7 +382,7 @@ export default class Client extends EventEmitter {
   }
 
   _open() {
-    this.is('open', true);
+    this.state('open', true);
 
     if (this._auth) {
       logIn(this);
