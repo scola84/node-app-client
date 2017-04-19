@@ -8,6 +8,14 @@
   "main": "./index.js",
   "jsnext:main": "./index.js",
   "dependencies": {
-
+    "@scola/api": "^5.0.0",
+    "@scola/auth-client": "^3.0.0",
+    "@scola/d3": "^4.0.0",
+    "@scola/validator": "^6.0.0",
+    "dom-shims": "^0.1.4",
+    "es6-shim": "^0.35.3",
+    "es7-shim": "^6.0.0",
+    "fastclick": "^1.0.6",
+    "viewport-units-buggyfill": "^0.6.1"
   }
 }
