@@ -225,21 +225,13 @@ export default class Client extends EventEmitter {
     loadApi(this);
     loadValidator(this);
 
-    if (this._auth) {
-      loadAuth(this);
-      setUser(this);
+    if (this._auth === null) {
+      this._popState();
+      return this;
     }
 
-    const filter = this._user === null ?
-      ['scola.auth'] : null;
-
-    this._router.popState(filter);
-
-    if (this._ws) {
-      if (window.navigator.onLine === true) {
-        this._ws.open();
-      }
-    }
+    loadAuth(this);
+    setUser(this, () => this._popState());
 
     return this;
   }
@@ -283,6 +275,18 @@ export default class Client extends EventEmitter {
       this._ws.removeListener('close', this._handleClose);
       this._ws.removeListener('error', this._handleError);
       this._ws.removeListener('open', this._handleOpen);
+    }
+  }
+
+  _popState() {
+    const filter = this._user === null ? ['scola.auth'] : null;
+
+    this._router.popState(filter);
+
+    if (this._ws) {
+      if (window.navigator.onLine === true) {
+        this._ws.open();
+      }
     }
   }
 

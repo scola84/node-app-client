@@ -9,9 +9,9 @@
   "jsnext:main": "./index.js",
   "dependencies": {
     "@scola/api": "^5.0.1",
-    "@scola/auth-client": "^3.0.2",
+    "@scola/auth-client": "^4.0.0",
     "@scola/d3": "^4.0.2",
-    "@scola/validator": "^6.0.0",
+    "@scola/validator": "^6.0.1",
     "es6-shim": "^0.35.3",
     "es7-shim": "^6.0.0",
     "fastclick": "^1.0.6",
