@@ -1,3 +1,4 @@
+import 'dom-shims';
 import 'es6-shim';
 import es7 from 'es7-shim';
 import vp from 'viewport-units-buggyfill';
