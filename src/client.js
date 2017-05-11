@@ -1,6 +1,5 @@
 import 'dom-shims/shim/CustomEvent';
 import 'dom-shims/shim/Element.mutation';
-import 'es6-promise/auto';
 import 'es6-shim';
 import es7 from 'es7-shim';
 
