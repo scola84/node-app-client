@@ -292,7 +292,7 @@ export default class Client extends EventEmitter {
 
   _setAuth(value) {
     if (value !== AUTH_VALID && this._mainModifier) {
-      this._router.target('main').destroy('replace');
+      this._router.target('main').destroy();
     }
   }
 
@@ -345,7 +345,7 @@ export default class Client extends EventEmitter {
           target
             .router()
             .target(name)
-            .destroy('replace');
+            .destroy();
         });
       });
     });
