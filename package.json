@@ -8,10 +8,10 @@
   "main": "./index.js",
   "jsnext:main": "./index.js",
   "dependencies": {
-    "@scola/api": "^5.1.6",
-    "@scola/auth-client": "^4.0.4",
+    "@scola/api": "^5.1.7",
+    "@scola/auth-client": "^4.1.0",
     "@scola/d3": "^4.7.0",
-    "@scola/validator": "^6.0.1",
+    "@scola/validator": "^6.0.3",
     "dom-shims": "^0.1.4",
     "es6-shim": "^0.35.3",
     "es7-shim": "^6.0.0",
