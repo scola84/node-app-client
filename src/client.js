@@ -9,6 +9,7 @@ import { request } from 'https';
 
 import {
   HttpConnection,
+  PubSub,
   WsConnection,
   load as loadApi
 } from '@scola/api';
@@ -41,12 +42,14 @@ export default class Client extends EventEmitter {
     this._codec = null;
     this._http = null;
     this._i18n = null;
-    this._mainModifier = null;
-    this._menuModifiers = new Map();
+    this._pubsub = null;
     this._router = null;
     this._storage = null;
     this._user = null;
     this._ws = null;
+
+    this._mainModifier = null;
+    this._menuModifiers = new Map();
 
     this._state = {
       auth: false,
@@ -157,6 +160,32 @@ export default class Client extends EventEmitter {
     return this;
   }
 
+  pubsub(options = null) {
+    if (this._pubsub === null) {
+      this._pubsub = new PubSub();
+    }
+
+    if (options === null) {
+      return this._pubsub;
+    }
+
+    if (options === true) {
+      this._pubsub.connection(this._ws);
+      return this;
+    }
+
+    options.factory = (u, p) => {
+      return new WebSocket(u, p);
+    };
+
+    const connection = new WsConnection()
+      .codec(this.codec())
+      .reconnector(options);
+
+    this._pubsub.connection(connection);
+    return this;
+  }
+
   router(options = null) {
     if (options === null) {
       return this._router;
@@ -211,7 +240,6 @@ export default class Client extends EventEmitter {
     };
 
     this._ws = new WsConnection()
-      .router(this.router())
       .codec(this.codec())
       .reconnector(options);
 
@@ -224,6 +252,10 @@ export default class Client extends EventEmitter {
 
     loadApi(this);
     loadValidator(this);
+
+    if (this._pubsub) {
+      this._pubsub.open();
+    }
 
     if (this._auth === null) {
       this._popState();
