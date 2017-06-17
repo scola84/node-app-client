@@ -39,7 +39,6 @@ export default class Client extends EventEmitter {
     super();
 
     this._auth = null;
-    this._codec = null;
     this._http = null;
     this._i18n = null;
     this._pubsub = null;
@@ -106,20 +105,6 @@ export default class Client extends EventEmitter {
     return this;
   }
 
-  codec(value = null) {
-    if (value === null) {
-      return this._codec;
-    }
-
-    this._codec = value;
-
-    if (this._ws) {
-      this._ws.codec(value);
-    }
-
-    return this;
-  }
-
   http(options = null) {
     if (options === null) {
       return this._http;
@@ -127,7 +112,7 @@ export default class Client extends EventEmitter {
 
     this._http = new HttpConnection()
       .http({ request })
-      .codec(this.codec())
+      .codec(options.codec)
       .host(options.host)
       .port(options.port);
 
@@ -179,7 +164,7 @@ export default class Client extends EventEmitter {
     };
 
     const connection = new WsConnection()
-      .codec(this.codec())
+      .codec(options.codec)
       .reconnector(options);
 
     this._pubsub.connection(connection);
@@ -240,7 +225,7 @@ export default class Client extends EventEmitter {
     };
 
     this._ws = new WsConnection()
-      .codec(this.codec())
+      .codec(options.codec)
       .reconnector(options);
 
     this._bindWs();
