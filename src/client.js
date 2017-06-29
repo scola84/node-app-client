@@ -353,19 +353,21 @@ export default class Client extends EventEmitter {
     document.body.appendChild(element.root().node());
     element.show(true);
 
-    target.element(element, () => {
-      element.show(false).on('end', () => {
-        element.destroy();
-        target.routes(false);
+    target
+      .element(element)
+      .once('destroy', () => {
+        element.show(false).on('end', () => {
+          element.destroy();
+          target.routes(false);
 
-        menus.forEach((name) => {
-          target
-            .router()
-            .target(name)
-            .destroy();
+          menus.forEach((name) => {
+            target
+              .router()
+              .target(name)
+              .destroy();
+          });
         });
       });
-    });
   }
 
   _menu(target) {
@@ -385,10 +387,12 @@ export default class Client extends EventEmitter {
       main.append(element);
     }
 
-    target.element(element, () => {
-      element.destroy();
-      target.routes(false);
-    });
+    target
+      .element(element)
+      .once('destroy', () => {
+        element.destroy();
+        target.routes(false);
+      });
   }
 
   _close() {
