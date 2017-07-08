@@ -6,6 +6,7 @@ import es7 from 'es7-shim';
 import { EventEmitter } from 'events';
 import { FastClick } from 'fastclick';
 import { request } from 'https';
+import get from 'lodash-es/get';
 
 import {
   HttpConnection,
@@ -39,6 +40,7 @@ export default class Client extends EventEmitter {
     super();
 
     this._auth = null;
+    this._config = null;
     this._http = null;
     this._i18n = null;
     this._pubsub = null;
@@ -102,6 +104,19 @@ export default class Client extends EventEmitter {
       .cache(cache);
 
     this._bindAuth();
+    return this;
+  }
+
+  config(value = null) {
+    if (value === null) {
+      return this._config;
+    }
+
+    if (typeof value === 'string') {
+      return get(this._config, value);
+    }
+
+    this._config = value;
     return this;
   }
 
