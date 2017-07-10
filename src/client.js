@@ -16,7 +16,6 @@ import {
 } from '@scola/api';
 
 import {
-  AUTH_VALID,
   Auth,
   setUser,
   logIn,
@@ -323,7 +322,7 @@ export default class Client extends EventEmitter {
   }
 
   _setAuth(value) {
-    if (value !== AUTH_VALID && this._mainModifier) {
+    if (value !== 'valid' && this._mainModifier) {
       this._router.target('main').destroy();
     }
   }
