@@ -35,8 +35,7 @@ export default class Route {
     this._path = path;
     this._renderer = renderer;
 
-    this._open();
-    return this;
+    return this._open();
   }
 
   _open() {
@@ -56,6 +55,8 @@ export default class Route {
     if (this._default === true) {
       route.default();
     }
+
+    return route;
   }
 
   _addAuthorize(handlers) {

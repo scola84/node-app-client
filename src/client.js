@@ -32,6 +32,7 @@ import {
   model as modelFactory
 } from '@scola/d3';
 
+import { ScolaError } from '@scola/error';
 import { load as loadValidator } from '@scola/validator';
 import Route from './route';
 
@@ -118,6 +119,10 @@ export default class Client extends EventEmitter {
 
     this._config = value;
     return this;
+  }
+
+  error(message) {
+    return new ScolaError(message);
   }
 
   http(options = null) {
