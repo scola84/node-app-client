@@ -4,8 +4,8 @@ export default class Route {
   constructor() {
     this._client = null;
 
-    this._allow = null;
-    this._authorize = null;
+    this._allow = [];
+    this._authorize = [];
     this._default = false;
     this._path = null;
     this._renderer = null;
@@ -17,12 +17,12 @@ export default class Route {
   }
 
   authorize(value) {
-    this._authorize = value;
+    this._authorize.push(value);
     return this;
   }
 
   allow(value) {
-    this._allow = value;
+    this._allow.push(value);
     return this;
   }
 
@@ -59,12 +59,24 @@ export default class Route {
     return route;
   }
 
+  _addAllow(handlers) {
+    if (this._allow === null) {
+      return;
+    }
+
+    this._allow.forEach((handler) => {
+      handlers.push(authorize(handler));
+    });
+  }
+
   _addAuthorize(handlers) {
     if (this._authorize === null) {
       return;
     }
 
-    handlers.push(this._authorize);
+    this._authorize.forEach((handler) => {
+      handlers.push(handler);
+    });
   }
 
   _addRenderer(handlers) {
@@ -73,13 +85,5 @@ export default class Route {
     }
 
     handlers.push(this._renderer);
-  }
-
-  _addAllow(handlers) {
-    if (this._allow === null) {
-      return;
-    }
-
-    handlers.push(authorize(this._allow));
   }
 }
