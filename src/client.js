@@ -280,24 +280,28 @@ export default class Client extends EventEmitter {
 
   _bindAuth() {
     if (this._auth) {
+      this.setMaxListeners(this.getMaxListeners() + 1);
       this.on('auth', this._handleSetAuth);
     }
   }
 
   _unbindAuth() {
     if (this._auth) {
+      this.setMaxListeners(this.getMaxListeners() - 1);
       this.removeListener('auth', this._handleSetAuth);
     }
   }
 
   _bindRouter() {
     if (this._router) {
+      this._router.setMaxListeners(this._router.getMaxListeners() + 1);
       this._router.on('error', this._handleError);
     }
   }
 
   _unbindRouter() {
     if (this._router) {
+      this._router.setMaxListeners(this._router.getMaxListeners() - 1);
       this._router.removeListener('error', this._handleError);
     }
   }
@@ -305,6 +309,7 @@ export default class Client extends EventEmitter {
   _bindWs() {
     if (this._ws) {
       window.addEventListener('online', this._handleOnline);
+      this._ws.setMaxListeners(this._ws.getMaxListeners() + 1);
       this._ws.on('close', this._handleClose);
       this._ws.on('error', this._handleError);
       this._ws.on('open', this._handleOpen);
@@ -314,6 +319,7 @@ export default class Client extends EventEmitter {
   _unbindWs() {
     if (this._ws) {
       window.removeEventListener('online', this._handleOnline);
+      this._ws.setMaxListeners(this._ws.getMaxListeners() - 1);
       this._ws.removeListener('close', this._handleClose);
       this._ws.removeListener('error', this._handleError);
       this._ws.removeListener('open', this._handleOpen);
