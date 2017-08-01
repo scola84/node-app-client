@@ -11,6 +11,7 @@
     "@scola/api": "^6.0.0",
     "@scola/auth-client": "^5.0.0",
     "@scola/d3": "^5.0.0",
+    "@scola/error": "^5.1.0",
     "@scola/validator": "^6.1.1",
     "dom-shims": "^0.1.4",
     "es6-shim": "^0.35.3",
