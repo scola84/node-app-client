@@ -12,6 +12,7 @@ import {
   HttpConnection,
   PubSub,
   WsConnection,
+  dictionary,
   load as loadApi
 } from '@scola/api';
 
@@ -245,12 +246,16 @@ export default class Client extends EventEmitter {
       return this._ws;
     }
 
+    options = Object.assign({}, options);
+
+    options.dictionary = options.dictionary || dictionary;
     options.factory = (u, p) => {
       return new WebSocket(u, p);
     };
 
     this._ws = new WsConnection()
       .codec(options.codec)
+      .dictionary(options.dictionary)
       .reconnector(options);
 
     this._bindWs();
